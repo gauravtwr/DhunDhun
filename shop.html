@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop — DhunDhun</title>
+<meta name="description" content="Shop DhunDhun's kawaii Korean & Japanese style bags, stationery, keychains, desk decor and gifts — filter by who you're gifting.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav">
+    <a href="index.html" class="logo">🎀 <span data-brand-name>DhunDhun</span></a>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="shop.html" class="active">Shop</a></li>
+        <li><a href="corporate.html">Corporate Gifting</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-whatsapp" data-wa-message="Hi DhunDhun! I'd like to know more about your gifts." target="_blank" rel="noopener">
+        💬 <span class="btn-text-long">WhatsApp Us</span>
+      </a>
+      <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">The Shop</span>
+    <h1>Every gift, sorted by who it's for</h1>
+    <p>Filter by audience and product type to find the perfect pick. Tap "Order" to message us on WhatsApp directly.</p>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="filter-bar">
+      <div class="audience-tabs">
+        <button class="tab-btn active" data-audience="all">All</button>
+        <button class="tab-btn" data-audience="kids">Kids</button>
+        <button class="tab-btn" data-audience="students">Students</button>
+        <button class="tab-btn" data-audience="loved-ones">Loved Ones</button>
+        <button class="tab-btn" data-audience="artists">Artists</button>
+        <button class="tab-btn" data-audience="everyone">Everyone</button>
+        <button class="tab-btn" data-audience="corporate">Corporate</button>
+      </div>
+      <select id="type-filter" class="type-select">
+        <option value="all">All Product Types</option>
+      </select>
+    </div>
+
+    <div class="product-grid" id="product-grid"></div>
+
+    <div class="custom-request-banner">
+      <p><strong>Seen a gift somewhere you love?</strong> Send us a reference photo — we'll help you find it or something just as cute.</p>
+      <a class="btn btn-primary" href="contact.html#custom-request">Request a Custom Gift</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">🎀 <span data-brand-name>DhunDhun</span></div>
+        <p>Cute Korean &amp; Japanese style gifts for kids, students, loved ones, artists, everyone — and corporate teams too.</p>
+        <div class="footer-socials">
+          <a href="#" data-social="instagram" aria-label="Instagram">📸</a>
+          <a href="#" data-social="facebook" aria-label="Facebook">📘</a>
+          <a href="#" data-social="pinterest" aria-label="Pinterest">📌</a>
+          <a href="#" data-social="youtube" aria-label="YouTube">▶️</a>
+        </div>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="shop.html?audience=kids">For Kids</a></li>
+          <li><a href="shop.html?audience=students">For Students</a></li>
+          <li><a href="shop.html?audience=loved-ones">For Loved Ones</a></li>
+          <li><a href="shop.html?audience=artists">For Artists</a></li>
+          <li><a href="shop.html">All Products</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="corporate.html">Corporate Gifting</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="contact.html#custom-request">Custom Requests</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Get in Touch</h4>
+        <ul>
+          <li><a data-wa-message="Hi DhunDhun! I have a question about your products." target="_blank" rel="noopener">💬 WhatsApp Us</a></li>
+          <li><a data-mailto-subject="Enquiry from DhunDhun website"><span data-email-text>hello@dhundhun.example</span></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © <span id="year"></span> DhunDhun. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<a href="#" id="wa-float-btn" class="wa-float" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">💬</a>
+
+<script src="js/config.js"></script>
+<script src="js/products-data.js"></script>
+<script src="js/shop.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

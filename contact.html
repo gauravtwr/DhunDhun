@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Us — DhunDhun</title>
+<meta name="description" content="Contact DhunDhun on WhatsApp, Instagram or email — or request a custom gift by sharing a reference photo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav">
+    <a href="index.html" class="logo">🎀 <span data-brand-name>DhunDhun</span></a>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="shop.html">Shop</a></li>
+        <li><a href="corporate.html">Corporate Gifting</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html" class="active">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-whatsapp" data-wa-message="Hi DhunDhun! I'd like to know more about your gifts." target="_blank" rel="noopener">
+        💬 <span class="btn-text-long">WhatsApp Us</span>
+      </a>
+      <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Get in Touch</span>
+    <h1>We'd love to hear from you</h1>
+    <p>Questions, orders, or a specific gift in mind — reach us however's easiest.</p>
+  </div>
+</section>
+
+<section>
+  <div class="container contact-grid">
+    <div class="contact-card">
+      <h3>Contact Details</h3>
+      <div class="contact-method">
+        <div class="icon bg-mint">💬</div>
+        <div>
+          <strong>WhatsApp</strong><br>
+          <a data-wa-message="Hi DhunDhun! I'd like to know more about your gifts." target="_blank" rel="noopener" style="color:var(--coral-deep); font-weight:600;">Chat with us instantly</a>
+        </div>
+      </div>
+      <div class="contact-method">
+        <div class="icon bg-pink">📸</div>
+        <div>
+          <strong>Instagram</strong><br>
+          <a data-social="instagram" target="_blank" rel="noopener" style="color:var(--coral-deep); font-weight:600;">@gt_gifts</a>
+        </div>
+      </div>
+      <div class="contact-method">
+        <div class="icon bg-lavender">✉️</div>
+        <div>
+          <strong>Email</strong><br>
+          <a data-mailto-subject="Enquiry from DhunDhun website" style="color:var(--coral-deep); font-weight:600;"><span data-email-text>hello@dhundhun.example</span></a>
+        </div>
+      </div>
+      <div class="contact-method">
+        <div class="icon bg-mint">📍</div>
+        <div>
+          <strong>Based in</strong><br>
+          India — shipping nationwide
+        </div>
+      </div>
+    </div>
+
+    <div class="contact-card" id="custom-request">
+      <h3>Request a Custom Gift</h3>
+      <p style="color:var(--ink-soft); font-size:0.92rem;">Seen something you love elsewhere? Add a reference photo and a short note — we'll help you find it or something just as cute.</p>
+
+      <div class="form-group">
+        <label for="cr-name">Your Name</label>
+        <input type="text" id="cr-name" placeholder="e.g. Ananya">
+      </div>
+      <div class="form-group">
+        <label for="cr-contact">Phone or Email</label>
+        <input type="text" id="cr-contact" placeholder="e.g. 98123 45678">
+      </div>
+      <div class="form-group">
+        <label for="cr-description">What are you looking for?</label>
+        <textarea id="cr-description" rows="3" placeholder="Describe the gift, occasion, and budget..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Reference Photo (optional)</label>
+        <label class="upload-box" id="cr-upload-box" for="cr-image">
+          <div class="upload-icon">📷</div>
+          <div><strong>Click to choose a photo</strong></div>
+          <div class="upload-hint">JPG or PNG — stays on this page, nothing is uploaded automatically</div>
+          <input type="file" id="cr-image" accept="image/*">
+        </label>
+        <div id="image-preview-wrap">
+          <img id="image-preview" alt="Reference preview">
+          <div class="preview-filename" id="preview-filename"></div>
+        </div>
+      </div>
+
+      <div class="request-actions">
+        <button class="btn btn-whatsapp btn-block" id="cr-send-whatsapp">💬 Send via WhatsApp</button>
+        <button class="btn btn-secondary btn-block" id="cr-send-email">✉️ Send via Email</button>
+      </div>
+
+      <div class="request-note">
+        💡 Your photo preview stays in your browser only. When you click Send, WhatsApp or your email app opens pre-filled with your details — just attach the same photo there before hitting send.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">🎀 <span data-brand-name>DhunDhun</span></div>
+        <p>Cute Korean &amp; Japanese style gifts for kids, students, loved ones, artists, everyone — and corporate teams too.</p>
+        <div class="footer-socials">
+          <a href="#" data-social="instagram" aria-label="Instagram">📸</a>
+          <a href="#" data-social="facebook" aria-label="Facebook">📘</a>
+          <a href="#" data-social="pinterest" aria-label="Pinterest">📌</a>
+          <a href="#" data-social="youtube" aria-label="YouTube">▶️</a>
+        </div>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="shop.html?audience=kids">For Kids</a></li>
+          <li><a href="shop.html?audience=students">For Students</a></li>
+          <li><a href="shop.html?audience=loved-ones">For Loved Ones</a></li>
+          <li><a href="shop.html?audience=artists">For Artists</a></li>
+          <li><a href="shop.html">All Products</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="corporate.html">Corporate Gifting</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="contact.html#custom-request">Custom Requests</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Get in Touch</h4>
+        <ul>
+          <li><a data-wa-message="Hi DhunDhun! I have a question about your products." target="_blank" rel="noopener">💬 WhatsApp Us</a></li>
+          <li><a data-mailto-subject="Enquiry from DhunDhun website"><span data-email-text>hello@dhundhun.example</span></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © <span id="year"></span> DhunDhun. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<a href="#" id="wa-float-btn" class="wa-float" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">💬</a>
+
+<script src="js/config.js"></script>
+<script src="js/products-data.js"></script>
+<script src="js/shop.js"></script>
+<script src="js/main.js"></script>
+<script src="js/custom-request.js"></script>
+</body>
+</html>

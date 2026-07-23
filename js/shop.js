@@ -51,7 +51,7 @@ function productCardHTML(p) {
     : `<a class="product-order-btn" href="${waLink(message)}" target="_blank" rel="noopener"><span>💬</span> Order</a>`;
 
   const thumbInner = images.length
-    ? `<img class="thumb-img" data-index="0" src="${escapeHtmlAttr(images[0])}" alt="${escapeHtmlAttr(p.name)}" loading="lazy">`
+    ? `<img class="thumb-img" data-action="open-lightbox" data-index="0" src="${escapeHtmlAttr(images[0])}" alt="${escapeHtmlAttr(p.name)}" loading="lazy">`
     : `<span aria-hidden="true">${icon}</span>`;
 
   const galleryNav =
@@ -62,19 +62,10 @@ function productCardHTML(p) {
       <div class="thumb-dots">${images.map((_, i) => `<span class="thumb-dot${i === 0 ? " active" : ""}"></span>`).join("")}</div>`
       : "";
 
-  const photoActions = images.length
-    ? `
-      <div class="photo-actions">
-        <button type="button" class="photo-action-btn" data-action="download-image" title="Download photo">⬇</button>
-        <button type="button" class="photo-action-btn" data-action="share-image" title="Share photo">📤</button>
-      </div>`
-    : "";
-
   return `
     <article class="product-card${outOfStock ? " is-out-of-stock" : ""}" data-id="${p.id}" data-type="${p.type}" data-audiences="${p.audiences.join(",")}">
-      <div class="product-thumb${images.length ? " has-image" : ""}" style="background:${bg}">
+      <div class="product-thumb${images.length ? " has-image clickable" : ""}" style="background:${bg}">
         ${tagLabel ? `<span class="${tagClass}">${tagLabel}</span>` : ""}
-        ${photoActions}
         ${thumbInner}
         ${galleryNav}
       </div>
@@ -131,10 +122,8 @@ function wireProductGridActions(containerId) {
       imgEl.setAttribute("data-index", nextIndex);
       imgEl.src = images[nextIndex];
       card.querySelectorAll(".thumb-dot").forEach((dot, i) => dot.classList.toggle("active", i === nextIndex));
-    } else if (action === "download-image") {
-      downloadProductImage(images[currentIndex], product.name);
-    } else if (action === "share-image") {
-      shareProductImage(product, images[currentIndex]);
+    } else if (action === "open-lightbox") {
+      openLightbox(product, currentIndex);
     }
   });
 }
@@ -177,6 +166,157 @@ async function shareProductImage(product, dataUrl) {
 function getUrlParam(name) {
   return new URLSearchParams(window.location.search).get(name);
 }
+
+/* ---------- Image lightbox: view, download, share photo, share link ---------- */
+
+let lightboxProduct = null;
+let lightboxIndex = 0;
+
+function ensureLightbox() {
+  if (document.getElementById("image-lightbox")) return;
+
+  const overlay = document.createElement("div");
+  overlay.id = "image-lightbox";
+  overlay.className = "lightbox-overlay";
+  overlay.style.display = "none";
+  overlay.innerHTML = `
+    <div class="lightbox-content">
+      <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Close">✕</button>
+      <div class="lightbox-image-wrap">
+        <button type="button" class="thumb-nav thumb-nav-prev" id="lightbox-prev" aria-label="Previous photo">‹</button>
+        <img id="lightbox-img" src="" alt="">
+        <button type="button" class="thumb-nav thumb-nav-next" id="lightbox-next" aria-label="Next photo">›</button>
+      </div>
+      <div class="thumb-dots" id="lightbox-dots"></div>
+      <div class="lightbox-info">
+        <h3 id="lightbox-name"></h3>
+        <p id="lightbox-price"></p>
+      </div>
+      <div class="lightbox-actions">
+        <button type="button" class="btn btn-secondary" id="lightbox-download">⬇ Download</button>
+        <button type="button" class="btn btn-secondary" id="lightbox-share">📤 Share Photo</button>
+        <button type="button" class="btn btn-primary" id="lightbox-copy-link">🔗 Share Link</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeLightbox();
+  });
+  document.getElementById("lightbox-close").addEventListener("click", closeLightbox);
+  document.getElementById("lightbox-prev").addEventListener("click", () => stepLightbox(-1));
+  document.getElementById("lightbox-next").addEventListener("click", () => stepLightbox(1));
+  document.getElementById("lightbox-download").addEventListener("click", () => {
+    const images = getProductImages(lightboxProduct);
+    downloadProductImage(images[lightboxIndex], lightboxProduct.name);
+  });
+  document.getElementById("lightbox-share").addEventListener("click", () => {
+    const images = getProductImages(lightboxProduct);
+    shareProductImage(lightboxProduct, images[lightboxIndex]);
+  });
+  document.getElementById("lightbox-copy-link").addEventListener("click", (e) => shareProductLink(lightboxProduct, e.currentTarget));
+
+  document.addEventListener("keydown", (e) => {
+    if (overlay.style.display === "none") return;
+    if (e.key === "Escape") closeLightbox();
+    if (e.key === "ArrowLeft") stepLightbox(-1);
+    if (e.key === "ArrowRight") stepLightbox(1);
+  });
+}
+
+function openLightbox(product, index) {
+  const images = getProductImages(product);
+  if (!images.length) return;
+  ensureLightbox();
+  lightboxProduct = product;
+  lightboxIndex = index >= 0 && index < images.length ? index : 0;
+  renderLightbox();
+  document.getElementById("image-lightbox").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+function closeLightbox() {
+  const overlay = document.getElementById("image-lightbox");
+  if (!overlay) return;
+  overlay.style.display = "none";
+  document.body.style.overflow = "";
+}
+
+function stepLightbox(delta) {
+  if (!lightboxProduct) return;
+  const images = getProductImages(lightboxProduct);
+  if (images.length < 2) return;
+  lightboxIndex = (lightboxIndex + delta + images.length) % images.length;
+  renderLightbox();
+}
+
+function renderLightbox() {
+  if (!lightboxProduct) return;
+  const images = getProductImages(lightboxProduct);
+  const outOfStock = isOutOfStock(lightboxProduct);
+
+  document.getElementById("lightbox-img").src = images[lightboxIndex];
+  document.getElementById("lightbox-img").alt = lightboxProduct.name;
+  document.getElementById("lightbox-name").textContent = lightboxProduct.name;
+  document.getElementById("lightbox-price").innerHTML = outOfStock
+    ? `₹${lightboxProduct.price} · <span class="lightbox-oos">Out of Stock</span>`
+    : `₹${lightboxProduct.price}`;
+
+  const multi = images.length > 1;
+  document.getElementById("lightbox-prev").style.display = multi ? "flex" : "none";
+  document.getElementById("lightbox-next").style.display = multi ? "flex" : "none";
+  document.getElementById("lightbox-dots").innerHTML = multi
+    ? images.map((_, i) => `<span class="thumb-dot${i === lightboxIndex ? " active" : ""}"></span>`).join("")
+    : "";
+}
+
+function buildProductShareUrl(product) {
+  const base = window.location.pathname.replace(/[^/]*$/, "") + "shop.html";
+  const shareUrl = new URL(base, window.location.origin);
+  shareUrl.searchParams.set("product", product.id);
+  return shareUrl.toString();
+}
+
+async function shareProductLink(product, triggerBtn) {
+  const shareUrl = buildProductShareUrl(product);
+  const shareData = {
+    title: product.name,
+    text: `Check out "${product.name}" from ${SITE_CONFIG.brandName}! ₹${product.price}`,
+    url: shareUrl
+  };
+
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+      return;
+    } catch (err) {
+      if (err && err.name === "AbortError") return; // user cancelled the native share sheet
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(shareUrl);
+    flashButtonLabel(triggerBtn, "Link Copied!");
+  } catch (err) {
+    window.prompt("Copy this link:", shareUrl);
+  }
+}
+
+function flashButtonLabel(btn, message) {
+  if (!btn) return;
+  const original = btn.textContent;
+  btn.textContent = message;
+  setTimeout(() => (btn.textContent = original), 1500);
+}
+
+function openLightboxFromUrl() {
+  const productId = getUrlParam("product");
+  if (!productId) return;
+  const product = PRODUCTS.find((p) => p.id === productId);
+  if (product) openLightbox(product, 0);
+}
+
+document.addEventListener("DOMContentLoaded", openLightboxFromUrl);
 
 /* ---------- Shop page setup (with pagination) ---------- */
 
@@ -296,11 +436,6 @@ function initShopPage() {
     });
   }
 
-  const catalogBtn = document.getElementById("catalog-pdf-btn");
-  if (catalogBtn) {
-    catalogBtn.addEventListener("click", () => generateCatalogPDF(catalogBtn));
-  }
-
   // Pre-select audience tab from ?audience= URL param (used by home page category links)
   const preset = getUrlParam("audience");
   if (preset) {
@@ -332,174 +467,3 @@ document.addEventListener("DOMContentLoaded", () => {
   initShopPage();
   initFeaturedProducts();
 });
-
-/* ---------- Downloadable PDF catalog ---------- */
-
-function getActiveFilterLabel() {
-  const parts = [];
-  if (shopFilterState.audience !== "all") parts.push(AUDIENCE_LABELS[shopFilterState.audience] || shopFilterState.audience);
-  if (shopFilterState.type !== "all") parts.push(shopFilterState.type);
-  return parts.length ? parts.join(" · ") : "All Products";
-}
-
-function dataUrlImageFormat(dataUrl) {
-  const match = dataUrl.match(/^data:image\/(\w+);/);
-  const ext = match ? match[1].toLowerCase() : "jpeg";
-  if (ext === "png") return "PNG";
-  if (ext === "webp") return "WEBP";
-  return "JPEG";
-}
-
-function instagramHandleLabel() {
-  const url = SITE_CONFIG.social.instagram || "";
-  const match = url.match(/instagram\.com\/([^/?]+)/i);
-  return match ? `@${match[1]}` : url;
-}
-
-async function generateCatalogPDF(triggerBtn) {
-  const list = getShopFilteredList();
-  if (!list.length) {
-    alert("No products match the current filter, so there's nothing to put in the catalog.");
-    return;
-  }
-
-  const originalLabel = triggerBtn ? triggerBtn.textContent : null;
-  if (triggerBtn) {
-    triggerBtn.textContent = "Generating…";
-    triggerBtn.disabled = true;
-    // Let the browser paint the "Generating…" state before the (synchronous,
-    // potentially slow for large catalogs) PDF layout loop blocks the thread.
-    await new Promise((resolve) => setTimeout(resolve, 30));
-  }
-
-  try {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
-
-    const pageWidth = 210;
-    const pageHeight = 297;
-    const margin = 14;
-    const filterLabel = getActiveFilterLabel();
-
-    const CORAL = [255, 111, 145];
-    const LAVENDER = [198, 169, 247];
-    const INK = [58, 46, 57];
-    const INK_SOFT = [111, 96, 112];
-    const MUTED = [138, 127, 136];
-
-    function drawHeader(isFirstPage) {
-      const bandHeight = isFirstPage ? 32 : 20;
-      doc.setFillColor(...CORAL);
-      doc.rect(0, 0, pageWidth, bandHeight, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(isFirstPage ? 22 : 14);
-      doc.text(SITE_CONFIG.brandName, margin, isFirstPage ? 16 : 13);
-      if (isFirstPage) {
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-        doc.text(SITE_CONFIG.tagline, margin, 24);
-      }
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(isFirstPage ? 11 : 9);
-      doc.text("Product Catalog", pageWidth - margin, isFirstPage ? 14 : 11, { align: "right" });
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      doc.text(filterLabel, pageWidth - margin, isFirstPage ? 20 : 16, { align: "right" });
-      return bandHeight;
-    }
-
-    function drawFooter(pageNum) {
-      doc.setDrawColor(...LAVENDER);
-      doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
-      doc.setFontSize(8);
-      doc.setTextColor(...INK_SOFT);
-      doc.setFont("helvetica", "normal");
-      const contact = `WhatsApp +${SITE_CONFIG.whatsappNumber}   ·   Instagram ${instagramHandleLabel()}`;
-      doc.text(contact, margin, pageHeight - 8);
-      doc.text(`Page ${pageNum}`, pageWidth - margin, pageHeight - 8, { align: "right" });
-    }
-
-    function drawPlaceholder(x, y, w, h, p) {
-      doc.setFillColor(255, 214, 232);
-      doc.roundedRect(x, y, w, h, 3, 3, "F");
-      doc.setTextColor(...INK_SOFT);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(8);
-      const label = doc.splitTextToSize(p.type || "DhunDhun", w - 6);
-      doc.text(label, x + w / 2, y + h / 2, { align: "center" });
-    }
-
-    const cols = 3;
-    const gutter = 6;
-    const cellWidth = (pageWidth - margin * 2 - gutter * (cols - 1)) / cols;
-    const imageHeight = cellWidth;
-    const textBlockHeight = 20;
-    const rowHeight = imageHeight + textBlockHeight;
-
-    let page = 1;
-    let y = drawHeader(true) + 8;
-    let col = 0;
-
-    for (let i = 0; i < list.length; i++) {
-      if (y + rowHeight > pageHeight - 18) {
-        drawFooter(page);
-        doc.addPage();
-        page += 1;
-        y = drawHeader(false) + 8;
-        col = 0;
-      }
-
-      const p = list[i];
-      const x = margin + col * (cellWidth + gutter);
-      const images = getProductImages(p);
-      const outOfStock = isOutOfStock(p);
-
-      if (images.length) {
-        try {
-          doc.addImage(images[0], dataUrlImageFormat(images[0]), x, y, cellWidth, imageHeight);
-        } catch (err) {
-          drawPlaceholder(x, y, cellWidth, imageHeight, p);
-        }
-      } else {
-        drawPlaceholder(x, y, cellWidth, imageHeight, p);
-      }
-
-      if (outOfStock) {
-        doc.setFillColor(...MUTED);
-        doc.rect(x, y + imageHeight - 6, cellWidth, 6, "F");
-        doc.setTextColor(255, 255, 255);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(6.5);
-        doc.text("OUT OF STOCK", x + cellWidth / 2, y + imageHeight - 2, { align: "center" });
-      }
-
-      doc.setTextColor(...INK);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      const nameLines = doc.splitTextToSize(p.name, cellWidth).slice(0, 2);
-      doc.text(nameLines, x, y + imageHeight + 5);
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(...CORAL);
-      doc.text(`Rs. ${p.price}`, x, y + imageHeight + 5 + nameLines.length * 4 + 3);
-
-      col += 1;
-      if (col >= cols) {
-        col = 0;
-        y += rowHeight;
-      }
-    }
-
-    drawFooter(page);
-
-    const safeLabel = filterLabel.replace(/[^a-z0-9]+/gi, "-");
-    doc.save(`DhunDhun-Catalog-${safeLabel}.pdf`);
-  } finally {
-    if (triggerBtn) {
-      triggerBtn.textContent = originalLabel;
-      triggerBtn.disabled = false;
-    }
-  }
-}

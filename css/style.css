@@ -405,29 +405,7 @@ section { padding: 72px 0; }
 }
 .thumb-dot.active { background: var(--white); }
 
-.photo-actions {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: flex;
-  gap: 6px;
-  z-index: 2;
-}
-.photo-action-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255,255,255,0.9);
-  color: var(--ink);
-  font-size: 0.9rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-.photo-action-btn:hover { background: var(--white); }
+.product-thumb.clickable .thumb-img { cursor: pointer; }
 
 .product-tag {
   position: absolute;
@@ -1172,3 +1150,93 @@ table.admin-table tr:last-child td { border-bottom: none; }
   color: var(--ink-soft);
   padding: 0 4px;
 }
+
+/* ---------- Image lightbox ---------- */
+
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(58, 46, 57, 0.82);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.lightbox-content {
+  background: var(--cream);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  text-align: center;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: var(--white);
+  box-shadow: var(--shadow);
+  font-size: 1rem;
+  cursor: pointer;
+  z-index: 2;
+}
+.lightbox-close:hover { background: var(--lavender); }
+
+.lightbox-image-wrap {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+}
+.lightbox-image-wrap #lightbox-img {
+  width: 100%;
+  max-height: 55vh;
+  object-fit: contain;
+  display: block;
+}
+
+.lightbox-image-wrap .thumb-nav { box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+#lightbox-dots {
+  position: static;
+  margin: 12px 0 4px;
+}
+#lightbox-dots .thumb-dot { background: rgba(58,46,57,0.2); }
+#lightbox-dots .thumb-dot.active { background: var(--coral); }
+
+.lightbox-info h3 {
+  font-size: 1.15rem;
+  margin: 14px 0 4px;
+}
+.lightbox-info p {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--coral-deep);
+  margin: 0 0 18px;
+}
+.lightbox-oos {
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.lightbox-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.lightbox-actions .btn { flex: 1; min-width: 130px; }

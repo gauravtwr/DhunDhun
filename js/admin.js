@@ -111,6 +111,11 @@ function initDashboard() {
 
   document.getElementById("f-image").addEventListener("change", handleImageSelect);
 
+  const catalogBtn = document.getElementById("catalog-pdf-btn");
+  if (catalogBtn) {
+    catalogBtn.addEventListener("click", () => generateCatalogPDF(catalogBtn));
+  }
+
   initCategoryControls();
 }
 
@@ -707,3 +712,178 @@ function initForgotPassword() {
 document.addEventListener("DOMContentLoaded", initAuthGate);
 document.addEventListener("DOMContentLoaded", initChangePassword);
 document.addEventListener("DOMContentLoaded", initForgotPassword);
+
+/* ---------- Downloadable PDF catalog ---------- */
+
+function getCatalogFilterLabel() {
+  const query = document.getElementById("search-input").value.trim();
+  return query ? `Search: "${query}"` : "All Products";
+}
+
+function getCatalogPDFList() {
+  const query = document.getElementById("search-input").value.trim().toLowerCase();
+  if (!query) return catalog;
+  return catalog.filter((p) => p.name.toLowerCase().includes(query) || p.type.toLowerCase().includes(query));
+}
+
+function dataUrlImageFormat(dataUrl) {
+  const match = dataUrl.match(/^data:image\/(\w+);/);
+  const ext = match ? match[1].toLowerCase() : "jpeg";
+  if (ext === "png") return "PNG";
+  if (ext === "webp") return "WEBP";
+  return "JPEG";
+}
+
+function instagramHandleLabel() {
+  const url = SITE_CONFIG.social.instagram || "";
+  const match = url.match(/instagram\.com\/([^/?]+)/i);
+  return match ? `@${match[1]}` : url;
+}
+
+async function generateCatalogPDF(triggerBtn) {
+  const list = getCatalogPDFList();
+  if (!list.length) {
+    alert("No products match your search, so there's nothing to put in the catalog.");
+    return;
+  }
+
+  const originalLabel = triggerBtn ? triggerBtn.textContent : null;
+  if (triggerBtn) {
+    triggerBtn.textContent = "Generating…";
+    triggerBtn.disabled = true;
+    // Let the browser paint the "Generating…" state before the (synchronous,
+    // potentially slow for large catalogs) PDF layout loop blocks the thread.
+    await new Promise((resolve) => setTimeout(resolve, 30));
+  }
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const margin = 14;
+    const filterLabel = getCatalogFilterLabel();
+
+    const CORAL = [255, 111, 145];
+    const LAVENDER = [198, 169, 247];
+    const INK = [58, 46, 57];
+    const INK_SOFT = [111, 96, 112];
+    const MUTED = [138, 127, 136];
+
+    function drawHeader(isFirstPage) {
+      const bandHeight = isFirstPage ? 32 : 20;
+      doc.setFillColor(...CORAL);
+      doc.rect(0, 0, pageWidth, bandHeight, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(isFirstPage ? 22 : 14);
+      doc.text(SITE_CONFIG.brandName, margin, isFirstPage ? 16 : 13);
+      if (isFirstPage) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.text(SITE_CONFIG.tagline, margin, 24);
+      }
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(isFirstPage ? 11 : 9);
+      doc.text("Product Catalog", pageWidth - margin, isFirstPage ? 14 : 11, { align: "right" });
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.text(filterLabel, pageWidth - margin, isFirstPage ? 20 : 16, { align: "right" });
+      return bandHeight;
+    }
+
+    function drawFooter(pageNum) {
+      doc.setDrawColor(...LAVENDER);
+      doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
+      doc.setFontSize(8);
+      doc.setTextColor(...INK_SOFT);
+      doc.setFont("helvetica", "normal");
+      const contact = `WhatsApp +${SITE_CONFIG.whatsappNumber}   ·   Instagram ${instagramHandleLabel()}`;
+      doc.text(contact, margin, pageHeight - 8);
+      doc.text(`Page ${pageNum}`, pageWidth - margin, pageHeight - 8, { align: "right" });
+    }
+
+    function drawPlaceholder(x, y, w, h, p) {
+      doc.setFillColor(255, 214, 232);
+      doc.roundedRect(x, y, w, h, 3, 3, "F");
+      doc.setTextColor(...INK_SOFT);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      const label = doc.splitTextToSize(p.type || "DhunDhun", w - 6);
+      doc.text(label, x + w / 2, y + h / 2, { align: "center" });
+    }
+
+    const cols = 3;
+    const gutter = 6;
+    const cellWidth = (pageWidth - margin * 2 - gutter * (cols - 1)) / cols;
+    const imageHeight = cellWidth;
+    const textBlockHeight = 20;
+    const rowHeight = imageHeight + textBlockHeight;
+
+    let page = 1;
+    let y = drawHeader(true) + 8;
+    let col = 0;
+
+    for (let i = 0; i < list.length; i++) {
+      if (y + rowHeight > pageHeight - 18) {
+        drawFooter(page);
+        doc.addPage();
+        page += 1;
+        y = drawHeader(false) + 8;
+        col = 0;
+      }
+
+      const p = list[i];
+      const x = margin + col * (cellWidth + gutter);
+      const images = getProductImages(p);
+      const outOfStock = isOutOfStockRow(p);
+
+      if (images.length) {
+        try {
+          doc.addImage(images[0], dataUrlImageFormat(images[0]), x, y, cellWidth, imageHeight);
+        } catch (err) {
+          drawPlaceholder(x, y, cellWidth, imageHeight, p);
+        }
+      } else {
+        drawPlaceholder(x, y, cellWidth, imageHeight, p);
+      }
+
+      if (outOfStock) {
+        doc.setFillColor(...MUTED);
+        doc.rect(x, y + imageHeight - 6, cellWidth, 6, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(6.5);
+        doc.text("OUT OF STOCK", x + cellWidth / 2, y + imageHeight - 2, { align: "center" });
+      }
+
+      doc.setTextColor(...INK);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      const nameLines = doc.splitTextToSize(p.name, cellWidth).slice(0, 2);
+      doc.text(nameLines, x, y + imageHeight + 5);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(...CORAL);
+      doc.text(`Rs. ${p.price}`, x, y + imageHeight + 5 + nameLines.length * 4 + 3);
+
+      col += 1;
+      if (col >= cols) {
+        col = 0;
+        y += rowHeight;
+      }
+    }
+
+    drawFooter(page);
+
+    const safeLabel = filterLabel.replace(/[^a-z0-9]+/gi, "-");
+    doc.save(`DhunDhun-Catalog-${safeLabel}.pdf`);
+  } finally {
+    if (triggerBtn) {
+      triggerBtn.textContent = originalLabel;
+      triggerBtn.disabled = false;
+    }
+  }
+}

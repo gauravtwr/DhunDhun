@@ -135,17 +135,14 @@
               <input type="text" id="f-name" placeholder="e.g. Sakura Bloom Tote Bag" required>
             </div>
             <div class="form-group">
-              <label>Product Photo (optional)</label>
+              <label>Product Photos (optional, add as many as you like)</label>
               <label class="upload-box" id="f-image-box" for="f-image">
                 <div class="upload-icon">📷</div>
-                <div><strong>Click to choose a photo</strong></div>
-                <div class="upload-hint">JPG or PNG — auto-resized to keep your catalog file small</div>
-                <input type="file" id="f-image" accept="image/*">
+                <div><strong>Click to choose photo(s)</strong></div>
+                <div class="upload-hint">JPG or PNG — auto-resized to keep your catalog file small. Select multiple at once, or add more later.</div>
+                <input type="file" id="f-image" accept="image/*" multiple>
               </label>
-              <div id="f-image-preview-wrap" style="display:none; margin-top:12px;">
-                <img id="f-image-preview" alt="Product preview" style="max-width:100%; max-height:200px; border-radius:var(--radius-md); box-shadow:var(--shadow); display:block; margin:0 auto;">
-                <button type="button" class="btn btn-secondary" id="f-image-remove" style="margin-top:10px; width:100%;">Remove Photo</button>
-              </div>
+              <div id="f-image-strip" class="image-thumb-strip"></div>
             </div>
             <div class="form-group">
               <label for="f-category">Category</label>

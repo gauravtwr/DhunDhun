@@ -13,8 +13,16 @@ const AUTH_KEY = "dhundhun_admin_auth";
 
 let catalog = [];
 let editingId = null;
-let currentImageData = null;
+let currentImages = [];
 let extraCategories = new Set();
+
+/* A product may have the legacy singular "image" field (old data) or the
+   newer "images" array. This always returns an array, oldest-safe. */
+function getProductImages(p) {
+  if (p.images && p.images.length) return p.images;
+  if (p.image) return [p.image];
+  return [];
+}
 
 /* ---------- Auth gate ---------- */
 
@@ -102,7 +110,6 @@ function initDashboard() {
   });
 
   document.getElementById("f-image").addEventListener("change", handleImageSelect);
-  document.getElementById("f-image-remove").addEventListener("click", clearImagePreview);
 
   initCategoryControls();
 }
@@ -139,24 +146,38 @@ function compressImage(file, maxDimension, quality) {
 
 function handleImageSelect() {
   const fileInput = document.getElementById("f-image");
-  const file = fileInput.files[0];
-  if (!file) return;
-  compressImage(file, 900, 0.82).then((dataUrl) => {
-    currentImageData = dataUrl;
-    showImagePreview(dataUrl);
+  const files = Array.from(fileInput.files);
+  if (!files.length) return;
+  Promise.all(files.map((file) => compressImage(file, 900, 0.82))).then((dataUrls) => {
+    currentImages.push(...dataUrls);
+    renderImageStrip();
+    fileInput.value = "";
   });
 }
 
-function showImagePreview(dataUrl) {
-  document.getElementById("f-image-preview").src = dataUrl;
-  document.getElementById("f-image-preview-wrap").style.display = "block";
+function renderImageStrip() {
+  const strip = document.getElementById("f-image-strip");
+  strip.innerHTML = currentImages
+    .map(
+      (src, i) => `
+      <div class="image-thumb">
+        <img src="${src}" alt="Product photo ${i + 1}">
+        <button type="button" class="image-thumb-remove" data-index="${i}" title="Remove photo">✕</button>
+      </div>`
+    )
+    .join("");
+  strip.querySelectorAll(".image-thumb-remove").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      currentImages.splice(parseInt(btn.getAttribute("data-index"), 10), 1);
+      renderImageStrip();
+    });
+  });
 }
 
-function clearImagePreview() {
-  currentImageData = null;
+function clearImageStrip() {
+  currentImages = [];
   document.getElementById("f-image").value = "";
-  document.getElementById("f-image-preview-wrap").style.display = "none";
-  document.getElementById("f-image-preview").src = "";
+  renderImageStrip();
 }
 
 function populateAudienceCheckboxes() {
@@ -247,13 +268,14 @@ function renderTable() {
   tbody.innerHTML = pageRows
     .map((p) => {
       const outOfStock = isOutOfStockRow(p);
+      const images = getProductImages(p);
       return `
       <tr>
         <td>
           <div class="row-product-cell">
-            ${p.image ? `<img class="row-thumb" src="${p.image}" alt="">` : `<span class="row-thumb row-thumb-empty">🎀</span>`}
+            ${images.length ? `<img class="row-thumb" src="${images[0]}" alt="">` : `<span class="row-thumb row-thumb-empty">🎀</span>`}
             <div>
-              <strong>${escapeHtml(p.name)}</strong>
+              <strong>${escapeHtml(p.name)}</strong>${images.length > 1 ? `<span class="row-photo-count">${images.length} photos</span>` : ""}
               <div class="row-desc">${escapeHtml(p.description || "")}</div>
             </div>
           </div>
@@ -361,21 +383,22 @@ function handleFormSubmit(e) {
   }
   errorEl.style.display = "none";
 
-  const productData = { name, type, price, quantity, tag, description, audiences, image: currentImageData || undefined };
+  const productData = { name, type, price, quantity, tag, description, audiences, images: currentImages.length ? [...currentImages] : undefined };
 
   if (editingId) {
     const idx = catalog.findIndex((p) => p.id === editingId);
     if (idx !== -1) {
       const updated = { ...catalog[idx], ...productData };
-      if (!currentImageData) delete updated.image;
+      delete updated.image; // legacy singular field, superseded by "images"
+      if (!currentImages.length) delete updated.images;
       catalog[idx] = updated;
     }
     exitEditMode();
   } else {
-    if (!currentImageData) delete productData.image;
+    if (!currentImages.length) delete productData.images;
     catalog.push({ id: "p" + Date.now(), ...productData });
     e.target.reset();
-    clearImagePreview();
+    clearImageStrip();
   }
 
   saveCatalog();
@@ -400,12 +423,8 @@ function enterEditMode(id) {
     el.checked = p.audiences.includes(el.value);
   });
 
-  currentImageData = p.image || null;
-  if (p.image) {
-    showImagePreview(p.image);
-  } else {
-    clearImagePreview();
-  }
+  currentImages = getProductImages(p).slice();
+  renderImageStrip();
 
   document.getElementById("form-title").textContent = `Edit "${p.name}"`;
   document.getElementById("submit-btn").textContent = "Update Product";
@@ -416,7 +435,7 @@ function enterEditMode(id) {
 function exitEditMode() {
   editingId = null;
   document.getElementById("product-form").reset();
-  clearImagePreview();
+  clearImageStrip();
   document.getElementById("form-title").textContent = "Add a New Product";
   document.getElementById("submit-btn").textContent = "Add Product";
   document.getElementById("cancel-edit-btn").style.display = "none";
@@ -448,6 +467,8 @@ function buildFileContents() {
   audiences: "kids" | "students" | "loved-ones" | "artists" | "everyone" | "corporate"
   type: a short category label used for the type filter on the shop page.
   quantity: units in stock. 0 or less shows an "Out of Stock" tag on the site.
+  images: optional array of compressed base64 photos added via the
+  dashboard's photo upload, shown as a swipeable gallery on the site.
 */
 
 `;

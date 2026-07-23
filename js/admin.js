@@ -522,5 +522,68 @@ function initChangePassword() {
   });
 }
 
+/* ---------- Forgot password (reset without verification, from the lock screen) ---------- */
+
+function initForgotPassword() {
+  const link = document.getElementById("forgot-password-link");
+  const panel = document.getElementById("forgot-password-panel");
+  const errorEl = document.getElementById("fp-error");
+  const exportPanel = document.getElementById("fp-export-panel");
+  let pendingHash = null;
+
+  link.addEventListener("click", (e) => {
+    e.preventDefault();
+    panel.style.display = panel.style.display === "none" ? "block" : "none";
+  });
+
+  document.getElementById("fp-generate-btn").addEventListener("click", async () => {
+    errorEl.style.display = "none";
+    exportPanel.style.display = "none";
+    pendingHash = null;
+
+    const next = document.getElementById("fp-new").value;
+    const confirmVal = document.getElementById("fp-confirm").value;
+
+    if (next.length < 6) {
+      errorEl.textContent = "New password must be at least 6 characters.";
+      errorEl.style.display = "block";
+      return;
+    }
+    if (next !== confirmVal) {
+      errorEl.textContent = "New password and confirmation don't match.";
+      errorEl.style.display = "block";
+      return;
+    }
+
+    pendingHash = await sha256Hex(next);
+    exportPanel.style.display = "block";
+  });
+
+  document.getElementById("fp-download-btn").addEventListener("click", () => {
+    if (!pendingHash) return;
+    const contents = buildConfigFileContents(pendingHash);
+    const blob = new Blob([contents], { type: "text/javascript" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "config.js";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("fp-copy-btn").addEventListener("click", () => {
+    if (!pendingHash) return;
+    navigator.clipboard.writeText(buildConfigFileContents(pendingHash)).then(() => {
+      const btn = document.getElementById("fp-copy-btn");
+      const original = btn.textContent;
+      btn.textContent = "Copied!";
+      setTimeout(() => (btn.textContent = original), 1500);
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", initAuthGate);
 document.addEventListener("DOMContentLoaded", initChangePassword);
+document.addEventListener("DOMContentLoaded", initForgotPassword);

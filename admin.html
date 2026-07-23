@@ -23,6 +23,32 @@
       <button type="submit" class="btn btn-primary btn-block">Unlock Dashboard</button>
     </form>
     <div class="auth-error" id="auth-error">Incorrect password. Please try again.</div>
+
+    <div style="margin-top:16px;">
+      <a href="#" id="forgot-password-link" style="font-size:0.85rem; color:var(--ink-soft); text-decoration:underline;">Forgot your password?</a>
+    </div>
+
+    <div id="forgot-password-panel" style="display:none; margin-top:20px; text-align:left;">
+      <p style="font-size:0.8rem; color:var(--ink-soft);">There's no email/account recovery on a site like this — so this doesn't verify it's really you, it just generates a brand-new password for you to deploy yourself. Your real protection is who has push access to your GitHub repo, not this screen.</p>
+      <div class="form-group">
+        <label for="fp-new">New Password</label>
+        <input type="password" id="fp-new" minlength="6" placeholder="At least 6 characters">
+      </div>
+      <div class="form-group">
+        <label for="fp-confirm">Confirm New Password</label>
+        <input type="password" id="fp-confirm" minlength="6">
+      </div>
+      <div class="form-error" id="fp-error"></div>
+      <button type="button" class="btn btn-primary btn-block" id="fp-generate-btn">Generate New Config</button>
+
+      <div id="fp-export-panel" style="display:none; margin-top:16px;">
+        <p style="font-size:0.8rem; color:var(--ink-soft);">Download this, replace <code>js/config.js</code> in your project, commit &amp; push — then log in here with your new password.</p>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="btn btn-secondary" id="fp-copy-btn" style="flex:1;">Copy Code</button>
+          <button type="button" class="btn btn-primary" id="fp-download-btn" style="flex:1;">⬇ Download</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 

@@ -14,6 +14,7 @@ const AUTH_KEY = "dhundhun_admin_auth";
 let catalog = [];
 let editingId = null;
 let currentImageData = null;
+let extraCategories = new Set();
 
 /* ---------- Auth gate ---------- */
 
@@ -94,6 +95,8 @@ function initDashboard() {
 
   document.getElementById("f-image").addEventListener("change", handleImageSelect);
   document.getElementById("f-image-remove").addEventListener("click", clearImagePreview);
+
+  initCategoryControls();
 }
 
 /* ---------- Product photo (compressed to a data URL, no server needed) ---------- */
@@ -160,10 +163,35 @@ function populateAudienceCheckboxes() {
     .join("");
 }
 
-function refreshCategoryDatalist() {
-  const list = document.getElementById("category-list");
-  const types = Array.from(new Set(catalog.map((p) => p.type))).sort();
-  list.innerHTML = types.map((t) => `<option value="${t}"></option>`).join("");
+function refreshCategoryDatalist(selectedValue) {
+  const select = document.getElementById("f-category");
+  const toSelect = selectedValue !== undefined ? selectedValue : select.value;
+  const types = Array.from(new Set([...catalog.map((p) => p.type), ...extraCategories])).sort();
+  select.innerHTML =
+    `<option value="" disabled ${!toSelect ? "selected" : ""}>Choose a category…</option>` +
+    types.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("");
+  if (types.includes(toSelect)) select.value = toSelect;
+}
+
+function initCategoryControls() {
+  const toggleBtn = document.getElementById("toggle-new-category-btn");
+  const row = document.getElementById("new-category-row");
+  const input = document.getElementById("new-category-input");
+
+  toggleBtn.addEventListener("click", () => {
+    const showing = row.style.display === "flex";
+    row.style.display = showing ? "none" : "flex";
+    if (!showing) input.focus();
+  });
+
+  document.getElementById("confirm-new-category-btn").addEventListener("click", () => {
+    const name = input.value.trim();
+    if (!name) return;
+    extraCategories.add(name);
+    refreshCategoryDatalist(name);
+    row.style.display = "none";
+    input.value = "";
+  });
 }
 
 /* ---------- Stats ---------- */

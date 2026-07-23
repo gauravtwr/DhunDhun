@@ -91,7 +91,15 @@ function initDashboard() {
   document.getElementById("export-btn").addEventListener("click", exportCatalog);
   document.getElementById("copy-btn").addEventListener("click", copyCatalogCode);
   document.getElementById("reset-btn").addEventListener("click", resetToFileDefaults);
-  document.getElementById("search-input").addEventListener("input", renderTable);
+  document.getElementById("search-input").addEventListener("input", () => {
+    adminPageState.page = 1;
+    renderTable();
+  });
+  document.getElementById("admin-page-size-select").addEventListener("change", (e) => {
+    adminPageState.pageSize = e.target.value === "all" ? "all" : parseInt(e.target.value, 10);
+    adminPageState.page = 1;
+    renderTable();
+  });
 
   document.getElementById("f-image").addEventListener("change", handleImageSelect);
   document.getElementById("f-image-remove").addEventListener("click", clearImagePreview);
@@ -210,6 +218,8 @@ function renderStats() {
 
 /* ---------- Table ---------- */
 
+const adminPageState = { page: 1, pageSize: 20 };
+
 function renderTable() {
   const tbody = document.getElementById("product-table-body");
   const query = document.getElementById("search-input").value.trim().toLowerCase();
@@ -223,10 +233,18 @@ function renderTable() {
 
   if (!rows.length) {
     tbody.innerHTML = `<tr><td colspan="7" class="table-empty">No products match your search.</td></tr>`;
+    renderAdminPagination(0, 1, adminPageState.pageSize);
     return;
   }
 
-  tbody.innerHTML = rows
+  const pageSize = adminPageState.pageSize === "all" ? Math.max(rows.length, 1) : adminPageState.pageSize;
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  if (adminPageState.page > totalPages) adminPageState.page = totalPages;
+  if (adminPageState.page < 1) adminPageState.page = 1;
+  const start = (adminPageState.page - 1) * pageSize;
+  const pageRows = rows.slice(start, start + pageSize);
+
+  tbody.innerHTML = pageRows
     .map((p) => {
       const outOfStock = isOutOfStockRow(p);
       return `
@@ -259,6 +277,59 @@ function renderTable() {
   tbody.querySelectorAll("[data-action='delete']").forEach((btn) =>
     btn.addEventListener("click", () => deleteProduct(btn.getAttribute("data-id")))
   );
+
+  renderAdminPagination(rows.length, totalPages, pageSize);
+}
+
+function renderAdminPagination(totalItems, totalPages, pageSize) {
+  const el = document.getElementById("admin-pagination-controls");
+  if (!el) return;
+  if (!totalItems) {
+    el.innerHTML = "";
+    return;
+  }
+
+  const page = adminPageState.page;
+  const rangeStart = (page - 1) * pageSize + 1;
+  const rangeEnd = Math.min(totalItems, page * pageSize);
+
+  const windowSize = 5;
+  let startPage = Math.max(1, page - Math.floor(windowSize / 2));
+  let endPage = Math.min(totalPages, startPage + windowSize - 1);
+  startPage = Math.max(1, endPage - windowSize + 1);
+
+  let numberButtons = "";
+  if (startPage > 1) {
+    numberButtons += `<button class="page-btn" data-page="1">1</button>`;
+    if (startPage > 2) numberButtons += `<span class="page-ellipsis">…</span>`;
+  }
+  for (let p = startPage; p <= endPage; p++) {
+    numberButtons += `<button class="page-btn${p === page ? " active" : ""}" data-page="${p}">${p}</button>`;
+  }
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) numberButtons += `<span class="page-ellipsis">…</span>`;
+    numberButtons += `<button class="page-btn" data-page="${totalPages}">${totalPages}</button>`;
+  }
+
+  el.innerHTML = `
+    <div class="pagination-info">Showing ${rangeStart}–${rangeEnd} of ${totalItems} products</div>
+    <div class="pagination-buttons">
+      <button class="page-btn" data-page="prev" ${page === 1 ? "disabled" : ""}>‹ Prev</button>
+      ${numberButtons}
+      <button class="page-btn" data-page="next" ${page === totalPages ? "disabled" : ""}>Next ›</button>
+    </div>
+  `;
+
+  el.querySelectorAll("[data-page]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const val = btn.getAttribute("data-page");
+      if (val === "prev") adminPageState.page -= 1;
+      else if (val === "next") adminPageState.page += 1;
+      else adminPageState.page = parseInt(val, 10);
+      renderTable();
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  });
 }
 
 function escapeHtml(str) {

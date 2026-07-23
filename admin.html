@@ -191,6 +191,13 @@
         <div>
           <div class="table-toolbar">
             <input type="text" id="search-input" placeholder="Search by name or category...">
+            <select id="admin-page-size-select" class="type-select">
+              <option value="10">10 per page</option>
+              <option value="20" selected>20 per page</option>
+              <option value="50">50 per page</option>
+              <option value="100">100 per page</option>
+              <option value="all">Show all</option>
+            </select>
             <button class="btn btn-secondary" id="reset-btn">Reset to File Defaults</button>
           </div>
           <div class="table-wrap">
@@ -209,6 +216,8 @@
               <tbody id="product-table-body"></tbody>
             </table>
           </div>
+
+          <div class="pagination-wrap" id="admin-pagination-controls"></div>
 
           <div class="export-panel">
             <p>Ready to publish your changes? Download the updated data file, replace <code>js/products-data.js</code> in your project folder, then redeploy.</p>

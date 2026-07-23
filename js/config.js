@@ -12,7 +12,7 @@ const SITE_CONFIG = {
 
   // Replace with your real WhatsApp business number, country code first, no + or spaces.
   // Example: "919812345678" for an Indian number 98123 45678
-  whatsappNumber: "91XXXXXXXXXX",
+  whatsappNumber: "919718158864",
 
   // Social links — replace with your real handles. Leave "" to hide a link.
   social: {

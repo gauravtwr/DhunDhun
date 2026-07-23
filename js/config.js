@@ -27,12 +27,29 @@ const SITE_CONFIG = {
   // Shown on the Contact and Corporate Gifting pages.
   location: "India",
 
-  // Password to open admin.html (the product dashboard). This is a casual
-  // deterrent only, NOT real security — anyone who can view this file's
-  // source can read it. Change it to something only you know, and don't
-  // reuse a password you use elsewhere.
-  adminPassword: "dhundhun123"
+  // SHA-256 hash of the password to open admin.html (the product dashboard).
+  // This is NOT the same as storing the password in plain text — nobody
+  // can read your actual password from this file, only its one-way hash.
+  // BUT: because this is a public static site, someone could still try to
+  // crack this hash offline (try candidate passwords until one matches),
+  // with no rate limit stopping them. So this raises the bar, it does not
+  // make the dashboard truly secure. Use a password you don't reuse
+  // elsewhere, and treat this dashboard as "hard to stumble into", not
+  // "impossible to break into".
+  //
+  // Default password right now is: DhunDhun@2026 — change it immediately
+  // using the "Change Password" panel inside admin.html, since this
+  // default is visible to anyone reading this file.
+  adminPasswordHash: "6af04e41b16102f1b41678c23dba1785db4c56c817801833043cd41c147c3728"
 };
+
+async function sha256Hex(text) {
+  const encoded = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest("SHA-256", encoded);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
 
 function waLink(message) {
   const encoded = encodeURIComponent(message);

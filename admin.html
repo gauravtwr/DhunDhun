@@ -35,6 +35,7 @@
         <div class="subtitle">Manage your product catalog</div>
       </div>
       <div style="display:flex; gap:10px; align-items:center;">
+        <button class="btn btn-secondary" id="change-password-toggle">🔑 Change Password</button>
         <a href="index.html" class="btn btn-secondary">View Site</a>
         <button class="btn btn-secondary" id="logout-btn">Log Out</button>
       </div>
@@ -46,6 +47,37 @@
 
       <div class="admin-banner">
         💡 <strong>How this works:</strong> Changes here are saved in this browser only. When you're happy with your catalog, click <strong>"Export Updated File"</strong> below, replace <code>js/products-data.js</code> in your project with the downloaded file, then redeploy your site so visitors see the update.
+      </div>
+
+      <div class="admin-panel" id="change-password-panel" style="display:none; margin-bottom:32px;">
+        <h2>Change Password</h2>
+        <p style="color:var(--ink-soft); font-size:0.88rem;">This updates the password check for this browser session immediately, but the change only takes effect everywhere once you download the updated config file, replace <code>js/config.js</code> in your project, commit, and push.</p>
+        <div class="form-error" id="password-form-error"></div>
+        <div class="request-note" id="password-success" style="display:none;"></div>
+        <form id="change-password-form">
+          <div class="form-group">
+            <label for="cp-current">Current Password</label>
+            <input type="password" id="cp-current" required>
+          </div>
+          <div class="form-group">
+            <label for="cp-new">New Password</label>
+            <input type="password" id="cp-new" minlength="6" required>
+          </div>
+          <div class="form-group">
+            <label for="cp-confirm">Confirm New Password</label>
+            <input type="password" id="cp-confirm" minlength="6" required>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Update Password</button>
+          </div>
+        </form>
+        <div class="export-panel" id="password-export-panel" style="display:none; margin-top:20px;">
+          <p>Download the updated config file, replace <code>js/config.js</code> in your project, then commit &amp; push so the new password applies on the live site.</p>
+          <div class="export-actions">
+            <button class="btn btn-secondary" id="copy-config-btn">Copy Code</button>
+            <button class="btn btn-primary" id="export-config-btn">⬇ Export Updated Config</button>
+          </div>
+        </div>
       </div>
 
       <div class="stat-grid">

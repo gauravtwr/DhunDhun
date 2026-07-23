@@ -75,7 +75,82 @@ function getUrlParam(name) {
   return new URLSearchParams(window.location.search).get(name);
 }
 
-/* ---------- Shop page setup ---------- */
+/* ---------- Shop page setup (with pagination) ---------- */
+
+const shopFilterState = { audience: "all", type: "all" };
+const shopPageState = { page: 1, pageSize: 20 };
+
+function getShopFilteredList() {
+  let list = PRODUCTS;
+  if (shopFilterState.audience !== "all") list = list.filter((p) => p.audiences.includes(shopFilterState.audience));
+  if (shopFilterState.type !== "all") list = list.filter((p) => p.type === shopFilterState.type);
+  return list;
+}
+
+function renderShopGrid() {
+  const list = getShopFilteredList();
+  const pageSize = shopPageState.pageSize === "all" ? Math.max(list.length, 1) : shopPageState.pageSize;
+  const totalPages = Math.max(1, Math.ceil(list.length / pageSize));
+  if (shopPageState.page > totalPages) shopPageState.page = totalPages;
+  if (shopPageState.page < 1) shopPageState.page = 1;
+
+  const start = (shopPageState.page - 1) * pageSize;
+  const pageItems = list.slice(start, start + pageSize);
+
+  renderProducts("product-grid", pageItems);
+  renderShopPagination(list.length, totalPages, pageSize);
+}
+
+function renderShopPagination(totalItems, totalPages, pageSize) {
+  const el = document.getElementById("pagination-controls");
+  if (!el) return;
+  if (!totalItems) {
+    el.innerHTML = "";
+    return;
+  }
+
+  const page = shopPageState.page;
+  const rangeStart = (page - 1) * pageSize + 1;
+  const rangeEnd = Math.min(totalItems, page * pageSize);
+
+  const windowSize = 5;
+  let startPage = Math.max(1, page - Math.floor(windowSize / 2));
+  let endPage = Math.min(totalPages, startPage + windowSize - 1);
+  startPage = Math.max(1, endPage - windowSize + 1);
+
+  let numberButtons = "";
+  if (startPage > 1) {
+    numberButtons += `<button class="page-btn" data-page="1">1</button>`;
+    if (startPage > 2) numberButtons += `<span class="page-ellipsis">…</span>`;
+  }
+  for (let p = startPage; p <= endPage; p++) {
+    numberButtons += `<button class="page-btn${p === page ? " active" : ""}" data-page="${p}">${p}</button>`;
+  }
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) numberButtons += `<span class="page-ellipsis">…</span>`;
+    numberButtons += `<button class="page-btn" data-page="${totalPages}">${totalPages}</button>`;
+  }
+
+  el.innerHTML = `
+    <div class="pagination-info">Showing ${rangeStart}–${rangeEnd} of ${totalItems} products</div>
+    <div class="pagination-buttons">
+      <button class="page-btn" data-page="prev" ${page === 1 ? "disabled" : ""}>‹ Prev</button>
+      ${numberButtons}
+      <button class="page-btn" data-page="next" ${page === totalPages ? "disabled" : ""}>Next ›</button>
+    </div>
+  `;
+
+  el.querySelectorAll("[data-page]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const val = btn.getAttribute("data-page");
+      if (val === "prev") shopPageState.page -= 1;
+      else if (val === "next") shopPageState.page += 1;
+      else shopPageState.page = parseInt(val, 10);
+      renderShopGrid();
+      document.getElementById("product-grid").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+}
 
 function initShopPage() {
   const grid = document.getElementById("product-grid");
@@ -83,6 +158,7 @@ function initShopPage() {
 
   const tabs = document.querySelectorAll(".tab-btn");
   const typeSelect = document.getElementById("type-filter");
+  const pageSizeSelect = document.getElementById("page-size-select");
 
   // Populate type filter options from data
   const types = Array.from(new Set(PRODUCTS.map((p) => p.type))).sort();
@@ -93,25 +169,29 @@ function initShopPage() {
     typeSelect.appendChild(opt);
   });
 
-  function apply() {
-    const activeTab = document.querySelector(".tab-btn.active");
-    const audience = activeTab ? activeTab.getAttribute("data-audience") : "all";
-    const type = typeSelect.value;
-    let list = PRODUCTS;
-    if (audience !== "all") list = list.filter((p) => p.audiences.includes(audience));
-    if (type !== "all") list = list.filter((p) => p.type === type);
-    renderProducts("product-grid", list);
-  }
-
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
       tabs.forEach((t) => t.classList.remove("active"));
       tab.classList.add("active");
-      apply();
+      shopFilterState.audience = tab.getAttribute("data-audience");
+      shopPageState.page = 1;
+      renderShopGrid();
     });
   });
 
-  typeSelect.addEventListener("change", apply);
+  typeSelect.addEventListener("change", () => {
+    shopFilterState.type = typeSelect.value;
+    shopPageState.page = 1;
+    renderShopGrid();
+  });
+
+  if (pageSizeSelect) {
+    pageSizeSelect.addEventListener("change", () => {
+      shopPageState.pageSize = pageSizeSelect.value === "all" ? "all" : parseInt(pageSizeSelect.value, 10);
+      shopPageState.page = 1;
+      renderShopGrid();
+    });
+  }
 
   // Pre-select audience tab from ?audience= URL param (used by home page category links)
   const preset = getUrlParam("audience");
@@ -120,10 +200,11 @@ function initShopPage() {
     if (match) {
       tabs.forEach((t) => t.classList.remove("active"));
       match.classList.add("active");
+      shopFilterState.audience = preset;
     }
   }
 
-  apply();
+  renderShopGrid();
 }
 
 /* ---------- Home page featured products ---------- */

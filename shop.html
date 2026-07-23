@@ -55,9 +55,18 @@
       <select id="type-filter" class="type-select">
         <option value="all">All Product Types</option>
       </select>
+      <select id="page-size-select" class="type-select">
+        <option value="12">12 per page</option>
+        <option value="20" selected>20 per page</option>
+        <option value="40">40 per page</option>
+        <option value="80">80 per page</option>
+        <option value="all">Show all</option>
+      </select>
     </div>
 
     <div class="product-grid" id="product-grid"></div>
+
+    <div class="pagination-wrap" id="pagination-controls"></div>
 
     <div class="custom-request-banner">
       <p><strong>Seen a gift somewhere you love?</strong> Send us a reference photo — we'll help you find it or something just as cute.</p>

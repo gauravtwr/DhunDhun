@@ -13,6 +13,7 @@ const AUTH_KEY = "dhundhun_admin_auth";
 
 let catalog = [];
 let editingId = null;
+let currentImageData = null;
 
 /* ---------- Auth gate ---------- */
 
@@ -89,6 +90,61 @@ function initDashboard() {
   document.getElementById("copy-btn").addEventListener("click", copyCatalogCode);
   document.getElementById("reset-btn").addEventListener("click", resetToFileDefaults);
   document.getElementById("search-input").addEventListener("input", renderTable);
+
+  document.getElementById("f-image").addEventListener("change", handleImageSelect);
+  document.getElementById("f-image-remove").addEventListener("click", clearImagePreview);
+}
+
+/* ---------- Product photo (compressed to a data URL, no server needed) ---------- */
+
+function compressImage(file, maxDimension, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > maxDimension) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else if (height > maxDimension) {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function handleImageSelect() {
+  const fileInput = document.getElementById("f-image");
+  const file = fileInput.files[0];
+  if (!file) return;
+  compressImage(file, 900, 0.82).then((dataUrl) => {
+    currentImageData = dataUrl;
+    showImagePreview(dataUrl);
+  });
+}
+
+function showImagePreview(dataUrl) {
+  document.getElementById("f-image-preview").src = dataUrl;
+  document.getElementById("f-image-preview-wrap").style.display = "block";
+}
+
+function clearImagePreview() {
+  currentImageData = null;
+  document.getElementById("f-image").value = "";
+  document.getElementById("f-image-preview-wrap").style.display = "none";
+  document.getElementById("f-image-preview").src = "";
 }
 
 function populateAudienceCheckboxes() {
@@ -147,8 +203,13 @@ function renderTable() {
       return `
       <tr>
         <td>
-          <strong>${escapeHtml(p.name)}</strong>
-          <div class="row-desc">${escapeHtml(p.description || "")}</div>
+          <div class="row-product-cell">
+            ${p.image ? `<img class="row-thumb" src="${p.image}" alt="">` : `<span class="row-thumb row-thumb-empty">🎀</span>`}
+            <div>
+              <strong>${escapeHtml(p.name)}</strong>
+              <div class="row-desc">${escapeHtml(p.description || "")}</div>
+            </div>
+          </div>
         </td>
         <td>${escapeHtml(p.type)}</td>
         <td>${p.audiences.map((a) => AUDIENCE_LABELS[a] || a).join(", ")}</td>
@@ -200,15 +261,21 @@ function handleFormSubmit(e) {
   }
   errorEl.style.display = "none";
 
-  const productData = { name, type, price, quantity, tag, description, audiences };
+  const productData = { name, type, price, quantity, tag, description, audiences, image: currentImageData || undefined };
 
   if (editingId) {
     const idx = catalog.findIndex((p) => p.id === editingId);
-    if (idx !== -1) catalog[idx] = { ...catalog[idx], ...productData };
+    if (idx !== -1) {
+      const updated = { ...catalog[idx], ...productData };
+      if (!currentImageData) delete updated.image;
+      catalog[idx] = updated;
+    }
     exitEditMode();
   } else {
+    if (!currentImageData) delete productData.image;
     catalog.push({ id: "p" + Date.now(), ...productData });
     e.target.reset();
+    clearImagePreview();
   }
 
   saveCatalog();
@@ -233,6 +300,13 @@ function enterEditMode(id) {
     el.checked = p.audiences.includes(el.value);
   });
 
+  currentImageData = p.image || null;
+  if (p.image) {
+    showImagePreview(p.image);
+  } else {
+    clearImagePreview();
+  }
+
   document.getElementById("form-title").textContent = `Edit "${p.name}"`;
   document.getElementById("submit-btn").textContent = "Update Product";
   document.getElementById("cancel-edit-btn").style.display = "inline-flex";
@@ -242,6 +316,7 @@ function enterEditMode(id) {
 function exitEditMode() {
   editingId = null;
   document.getElementById("product-form").reset();
+  clearImagePreview();
   document.getElementById("form-title").textContent = "Add a New Product";
   document.getElementById("submit-btn").textContent = "Add Product";
   document.getElementById("cancel-edit-btn").style.display = "none";

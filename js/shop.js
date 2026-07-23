@@ -26,6 +26,10 @@ function isOutOfStock(p) {
   return typeof p.quantity === "number" && p.quantity <= 0;
 }
 
+function escapeHtmlAttr(str) {
+  return String(str).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function productCardHTML(p) {
   const icon = TYPE_ICON[p.type] || "🎀";
   const bg = TYPE_BG[p.type] || "var(--pink)";
@@ -36,11 +40,14 @@ function productCardHTML(p) {
   const orderControl = outOfStock
     ? `<span class="product-order-btn disabled">Out of Stock</span>`
     : `<a class="product-order-btn" href="${waLink(message)}" target="_blank" rel="noopener"><span>💬</span> Order</a>`;
+  const thumbInner = p.image
+    ? `<img src="${escapeHtmlAttr(p.image)}" alt="${escapeHtmlAttr(p.name)}" loading="lazy">`
+    : `<span aria-hidden="true">${icon}</span>`;
   return `
     <article class="product-card${outOfStock ? " is-out-of-stock" : ""}" data-type="${p.type}" data-audiences="${p.audiences.join(",")}">
-      <div class="product-thumb" style="background:${bg}">
+      <div class="product-thumb${p.image ? " has-image" : ""}" style="background:${bg}">
         ${tagLabel ? `<span class="${tagClass}">${tagLabel}</span>` : ""}
-        <span aria-hidden="true">${icon}</span>
+        ${thumbInner}
       </div>
       <div class="product-body">
         <span class="product-type">${p.type}</span>
@@ -124,7 +131,11 @@ function initShopPage() {
 function initFeaturedProducts() {
   const el = document.getElementById("featured-grid");
   if (!el) return;
-  const featured = PRODUCTS.filter((p) => p.tag === "Bestseller" || p.tag === "New").slice(0, 8);
+  // Most recently added products live at the end of the catalog array —
+  // take from the end first so newly added items always surface here,
+  // instead of always showing the same original bestsellers.
+  const tagged = PRODUCTS.filter((p) => p.tag === "Bestseller" || p.tag === "New");
+  const featured = tagged.slice(-8).reverse();
   renderProducts("featured-grid", featured);
 }
 

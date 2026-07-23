@@ -8,6 +8,8 @@
   audiences: "kids" | "students" | "loved-ones" | "artists" | "everyone" | "corporate"
   type: a short category label used for the type filter on the shop page.
   quantity: units in stock. 0 or less shows an "Out of Stock" tag on the site.
+  image: optional. A compressed base64 photo added via the dashboard's photo
+  upload, or left out entirely to fall back to the pastel icon placeholder.
 */
 
 const PRODUCTS = [

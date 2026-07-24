@@ -1,0 +1,13 @@
+<svg viewBox="0 0 480 140" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(10,-2) scale(0.62)">
+    <rect x="25" y="72" width="150" height="30" rx="10" fill="#E85577"/>
+    <rect x="40" y="98" width="120" height="82" rx="12" fill="#FF6F91"/>
+    <rect x="90" y="72" width="20" height="108" fill="#FFF9F3"/>
+    <rect x="25" y="82" width="150" height="11" fill="#FFF9F3"/>
+    <path d="M100 68 C 88 68 55 66 48 45 C 43 30 60 18 78 27 C 92 34 100 52 100 68 Z" fill="#C6A9F7"/>
+    <path d="M100 68 C 112 68 145 66 152 45 C 157 30 140 18 122 27 C 108 34 100 52 100 68 Z" fill="#C6A9F7"/>
+    <path d="M100 68 L 92 82 L 100 78 L 108 82 Z" fill="#C6A9F7"/>
+    <circle cx="100" cy="67" r="10" fill="#E85577"/>
+  </g>
+  <text x="140" y="90" font-family="'Baloo 2', sans-serif" font-weight="800" font-size="48" fill="#3A2E39">Dhun<tspan fill="#FF6F91">Dhun</tspan></text>
+</svg>

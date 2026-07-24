@@ -1,0 +1,7 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="100" r="92" fill="#FF6F91"/>
+  <text x="100" y="124" font-family="'Baloo 2', sans-serif" font-weight="800" font-size="68" fill="#FFF9F3" text-anchor="middle">DD</text>
+  <path d="M150 44 C 138 44 131 33 140 27 C 147 23 152 32 152 44 Z" fill="#C6A9F7"/>
+  <path d="M150 44 C 162 44 169 33 160 27 C 153 23 148 32 148 44 Z" fill="#C6A9F7"/>
+  <circle cx="150" cy="42" r="4.5" fill="#E85577"/>
+</svg>

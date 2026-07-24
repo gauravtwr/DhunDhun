@@ -1,0 +1,15 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- box lid -->
+  <rect x="25" y="72" width="150" height="30" rx="10" fill="#E85577"/>
+  <!-- box body -->
+  <rect x="40" y="98" width="120" height="82" rx="12" fill="#FF6F91"/>
+  <!-- vertical ribbon -->
+  <rect x="90" y="72" width="20" height="108" fill="#FFF9F3"/>
+  <!-- horizontal ribbon on lid -->
+  <rect x="25" y="82" width="150" height="11" fill="#FFF9F3"/>
+  <!-- bow -->
+  <path d="M100 68 C 88 68 55 66 48 45 C 43 30 60 18 78 27 C 92 34 100 52 100 68 Z" fill="#C6A9F7"/>
+  <path d="M100 68 C 112 68 145 66 152 45 C 157 30 140 18 122 27 C 108 34 100 52 100 68 Z" fill="#C6A9F7"/>
+  <path d="M100 68 L 92 82 L 100 78 L 108 82 Z" fill="#C6A9F7"/>
+  <circle cx="100" cy="67" r="10" fill="#E85577"/>
+</svg>
